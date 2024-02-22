@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Calendario Anual Perpetuo con Gestión de Feriados y Clases</title>
+    <!-- Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Development -->
+    <script src="https://unpkg.com/@popperjs/core@2/dist/umd/popper.min.js"></script>
+    <script src="https://unpkg.com/tippy.js@6/dist/tippy-bundle.umd.js"></script>
+
+    <!-- Production -->
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/tippy.js@6/animations/scale.css"
+    />
+    <link rel="stylesheet" href="style.css">
+
+  </head>
+  <body>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+
+    <div class="container mt-5">
+      <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+          <h2 class="mb-4">Calendario Anual</h2>
+          <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text" id="year-addon">Año</span>
+            </div>
+            <input
+              type="number"
+              class="form-control"
+              id="yearInput"
+              aria-label="Año"
+              aria-describedby="year-addon"
+              value="2024"
+            />
+            <div class="input-group-append">
+              <button
+                class="btn btn-primary"
+                type="button"
+                onclick="generateCalendar()"
+              >
+                Generar Calendario
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container mt-4">
+      <!-- Usa mt-4 para agregar un poco de margen superior -->
+      <div id="calendarContainer" class="row">
+        <!-- Aquí se generará el contenido del calendario -->
+      </div>
+    </div>
+
+    <div class="management container mt-4">
+      <h3 class="mb-3">Agregar Materia</h3>
+      <div class="form-group">
+        <input
+          type="text"
+          id="nombreMateria"
+          class="form-control"
+          placeholder="Nombre de la Materia"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <select
+          id="facultadMateria"
+          class="form-control"
+          onchange="actualizarMaestrias()"
+        >
+          <option value="CienciasTecnologia">
+            Facultad de Ciencias y Tecnología
+          </option>
+          <option value="IngenieriaCivil">Facultad de Ingeniería Civil</option>
+          <option value="IngenieriaElectrica">
+            Facultad de Ingeniería Eléctrica
+          </option>
+          <option value="IngenieriaIndustrial">
+            Facultad de Ingeniería Industrial
+          </option>
+          <option value="IngenieriaMecanica">
+            Facultad de Ingeniería Mecánica
+          </option>
+          <option value="IngenieriaSistemas">
+            Facultad de Ingeniería de Sistemas Computacionales
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="maestriaMateria">Maestría:</label>
+        <select id="maestriaMateria" class="form-control">
+          <!-- Las opciones de maestría se llenarán dinámicamente basadas en la facultad seleccionada -->
+        </select>
+      </div>
+      <div class="form-group">
+        <input type="date" id="fechaInicioMateria" class="form-control" />
+      </div>
+      <div class="form-group">
+        <input
+          type="number"
+          id="totalClases"
+          class="form-control"
+          placeholder="Número de Clases"
+          min="1"
+          required
+        />
+      </div>
+      <div class="weekdays-selector">
+        <input type="checkbox" id="diaLunes" value="1" />
+        <label for="diaLunes" class="weekday-btn">Lunes</label>
+
+        <input type="checkbox" id="diaMartes" value="2" />
+        <label for="diaMartes" class="weekday-btn">Martes</label>
+
+        <input type="checkbox" id="diaMiercoles" value="3" />
+        <label for="diaMiercoles" class="weekday-btn">Miércoles</label>
+
+        <input type="checkbox" id="diaJueves" value="4" />
+        <label for="diaJueves" class="weekday-btn">Jueves</label>
+
+        <input type="checkbox" id="diaViernes" value="5" />
+        <label for="diaViernes" class="weekday-btn">Viernes</label>
+
+        <input type="checkbox" id="diaSabado" value="6" />
+        <label for="diaSabado" class="weekday-btn">Sábado</label>
+
+        <input type="checkbox" id="diaDomingo" value="0" />
+        <label for="diaDomingo" class="weekday-btn">Domingo</label>
+      </div>
+
+      <button onclick="agregarMateria()" class="btn btn-primary mt-3">
+        Agregar Materia
+      </button>
+    </div>
+
+    <div class="container mt-4">
+      <div class="card shadow">
+        <div class="card-header">
+          <h4 class="mb-0">Materias Agregadas</h4>
+        </div>
+        <div class="card-body">
+          <div id="materiasListadas" class="table-responsive">
+            <table class="table table-hover">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Nombre</th>
+                  <th scope="col">Maestría</th>
+                  <th scope="col">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Las materias agregadas se listarán aquí -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--
+    <div class="container mt-4">
+      <h4 class="mb-3">Materias Agregadas</h4>
+      <div id="materiasListadas">
+        <-- Las materias agregadas se listarán aquí --
+      </div>
+    </div>-->
+
+    <div id="holidaysList" class="container mt-4">
+      <h4 class="mb-3">Días Festivos</h4>
+      <!-- Los feriados se listarán aquí, asegúrate de ajustar también la generación de esta lista con clases de Bootstrap para los elementos generados dinámicamente -->
+    </div>
+
+    <!-- Modal -->
+    <div
+      class="modal fade"
+      id="alertModal"
+      tabindex="-1"
+      aria-labelledby="modalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalLabel">Alerta</h5>
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <!-- El mensaje de alerta se irá aquí -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-dismiss="modal">
+              Entendido
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>

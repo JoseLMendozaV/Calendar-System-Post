@@ -1,0 +1,141 @@
+.container {
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.calendar-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.month {
+    width: 100%;
+    max-width: 300px;
+    margin: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.month h3 {
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    margin-top: 0;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 8px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+}
+
+th {
+    background-color: #007bff;
+    color: white;
+}
+
+td {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+td:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+}
+
+td.holiday {
+    background-color: #dc3545;
+    color: white;
+}
+
+.clase {
+    cursor: pointer;
+}
+
+.clase:hover {
+    background-color: #ffc107;
+}
+
+/* Aplicar estilos para tooltips, si es necesario */
+
+/* Estilo base para los checkboxes */
+.weekdays-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.weekday-btn {
+    background-color: #f0f0f0;
+    border: 2px solid #d1d1d1;
+    color: #333;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.weekday-btn:hover,
+.weekdays-selector input[type="checkbox"]:checked+.weekday-btn {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.weekdays-selector input[type="checkbox"] {
+    display: none;
+}
+
+/*CSS INFO CALENDARIO SELECCION*/
+.container {
+    padding-top: 20px;
+}
+
+.input-group-text {
+    background-color: #007bff;
+    color: white;
+    border: 0px;
+}
+
+.form-control {
+    border-left: 0;
+    border-right: 0;
+}
+
+.btn-primary {
+    background-color: #0056b3;
+    border: 0px;
+}
+
+.inicio-materia {
+    border: 2px solid #28a745;
+    /* Un borde sólido verde para destacar */
+    position: relative;
+}
+
+.inicio-materia::after {
+    content: "Inicio";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    font-size: 12px;
+    background: #28a745;
+    color: white;
+    padding: 2px;
+}
