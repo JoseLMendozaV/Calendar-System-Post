@@ -1,223 +1,1075 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Calendario Anual Perpetuo con Gestión de Feriados y Clases</title>
-    <!-- Bootstrap CSS -->
-    <link
-      rel="stylesheet"
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-    />
-    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- Development -->
-    <script src="https://unpkg.com/@popperjs/core@2/dist/umd/popper.min.js"></script>
-    <script src="https://unpkg.com/tippy.js@6/dist/tippy-bundle.umd.js"></script>
-
-    <!-- Production -->
-    <script src="https://unpkg.com/@popperjs/core@2"></script>
-    <script src="https://unpkg.com/tippy.js@6"></script>
-
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/tippy.js@6/animations/scale.css"
-    />
-    <link rel="stylesheet" href="style.css">
-
-  </head>
-  <body>
-    <script src="https://unpkg.com/@popperjs/core@2"></script>
-    <script src="https://unpkg.com/tippy.js@6"></script>
-
-    <div class="container mt-5">
-      <div class="row justify-content-center">
-        <div class="col-md-6 text-center">
-          <h2 class="mb-4">Calendario Anual</h2>
-          <div class="input-group mb-3">
-            <div class="input-group-prepend">
-              <span class="input-group-text" id="year-addon">Año</span>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión Académica - Calendario Perpetuo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .holiday { 
+            background: linear-gradient(135deg, #fef3c7, #fbbf24) !important;
+            color: #92400e !important;
+            font-weight: bold;
+        }
+        .inicio-materia::after {
+            content: "★";
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            color: #fff;
+            font-size: 8px;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+        }
+        .calendar-cell {
+            min-height: 35px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e5e7eb;
+            position: relative;
+            background-color: #f9fafb;
+        }
+        .calendar-cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .sidebar-transition {
+            transition: transform 0.3s ease-in-out;
+        }
+        .sidebar-hidden {
+            transform: translateX(-100%);
+        }
+        table {
+            table-layout: fixed;
+        }
+        .calendar-table td {
+            width: 14.28%;
+            height: 40px;
+            padding: 0;
+            border: 1px solid #e5e7eb;
+        }
+        .calendar-table th {
+            background: #f3f4f6;
+            padding: 8px 4px;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button id="sidebarToggle" class="lg:hidden text-white hover:text-gray-200">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <h1 class="text-2xl font-bold">
+                        <i class="fas fa-calendar-alt mr-2"></i>
+                        Sistema Académico UTP
+                    </h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="px-4 py-2 rounded-lg bg-white bg-opacity-20">
+                        <span id="currentDate" class="text-sm font-medium"></span>
+                    </div>
+                </div>
             </div>
-            <input
-              type="number"
-              class="form-control"
-              id="yearInput"
-              aria-label="Año"
-              aria-describedby="year-addon"
-              value="2024"
-            />
-            <div class="input-group-append">
-              <button
-                class="btn btn-primary"
-                type="button"
-                onclick="generateCalendar()"
-              >
-                Generar Calendario
-              </button>
+        </div>
+    </header>
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-80 bg-white shadow-xl sidebar-transition lg:transform-none">
+            <div class="h-full overflow-y-auto p-6">
+                <!-- Year Selection -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-3">
+                        <i class="fas fa-calendar-check mr-2 text-purple-600"></i>
+                        Seleccionar Año
+                    </h3>
+                    <div class="flex space-x-2">
+                        <input type="number" id="yearInput" value="2025" 
+                               class="flex-1 px-3 py-2 border border-gray-300 rounded-lg">
+                        <button onclick="generateCalendar()" 
+                                class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Add Subject Form -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-3">
+                        <i class="fas fa-plus-circle mr-2 text-green-600"></i>
+                        Agregar Materia
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        <input type="text" id="nombreMateria" placeholder="Nombre de la Materia" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        
+                        <select id="facultadMateria" onchange="actualizarMaestrias()" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                            <option value="CienciasTecnologia">Ciencias y Tecnología</option>
+                            <option value="IngenieriaCivil">Ingeniería Civil</option>
+                            <option value="IngenieriaElectrica">Ingeniería Eléctrica</option>
+                            <option value="IngenieriaIndustrial">Ingeniería Industrial</option>
+                            <option value="IngenieriaMecanica">Ingeniería Mecánica</option>
+                            <option value="IngenieriaSistemas">Ingeniería de Sistemas</option>
+                        </select>
+                        
+                        <select id="maestriaMateria" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        </select>
+                        
+                        <input type="date" id="fechaInicioMateria" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        
+                        <input type="number" id="totalClases" placeholder="Número de Clases" min="1" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-gray-700">Días de Clase</label>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <label class="flex items-center p-2 border rounded cursor-pointer hover:bg-gray-50">
+                                    <input type="checkbox" id="diaLunes" value="1" class="mr-2">
+                                    Lunes
+                                </label>
+                                <label class="flex items-center p-2 border rounded cursor-pointer hover:bg-gray-50">
+                                    <input type="checkbox" id="diaMartes" value="2" class="mr-2">
+                                    Martes
+                                </label>
+                                <label class="flex items-center p-2 border rounded cursor-pointer hover:bg-gray-50">
+                                    <input type="checkbox" id="diaMiercoles" value="3" class="mr-2">
+                                    Miércoles
+                                </label>
+                                <label class="flex items-center p-2 border rounded cursor-pointer hover:bg-gray-50">
+                                    <input type="checkbox" id="diaJueves" value="4" class="mr-2">
+                                    Jueves
+                                </label>
+                                <label class="flex items-center p-2 border rounded cursor-pointer hover:bg-gray-50">
+                                    <input type="checkbox" id="diaViernes" value="5" class="mr-2">
+                                    Viernes
+                                </label>
+                                <label class="flex items-center p-2 border rounded cursor-pointer hover:bg-gray-50">
+                                    <input type="checkbox" id="diaSabado" value="6" class="mr-2">
+                                    Sábado
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <button onclick="agregarMateria()" 
+                                class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                            <i class="fas fa-plus mr-2"></i>
+                            Agregar Materia
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Holiday Management -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-3">
+                        <i class="fas fa-calendar-times mr-2 text-yellow-600"></i>
+                        Gestionar Feriados
+                    </h3>
+                    
+                    <div class="space-y-3 mb-4">
+                        <input type="date" id="fechaFeriado" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        
+                        <input type="text" id="nombreFeriado" placeholder="Nombre del feriado" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        
+                        <button onclick="agregarFeriado()" 
+                                class="w-full px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700">
+                            <i class="fas fa-plus mr-2"></i>
+                            Agregar Feriado
+                        </button>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between text-sm font-medium text-gray-700">
+                            <span>Feriados Configurados</span>
+                            <button onclick="toggleHolidaysList()" id="toggleHolidaysBtn" 
+                                    class="text-yellow-600 hover:text-yellow-800">
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                        </div>
+                        <div id="holidaysList" class="space-y-1 max-h-48 overflow-y-auto hidden">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-3">
+                        <i class="fas fa-chart-bar mr-2 text-blue-600"></i>
+                        Estadísticas
+                    </h3>
+                    <div class="space-y-2">
+                        <div class="bg-blue-50 p-3 rounded-lg">
+                            <div class="text-xl font-bold text-blue-600" id="totalMaterias">0</div>
+                            <div class="text-xs text-blue-600">Materias Activas</div>
+                        </div>
+                        <div class="bg-green-50 p-3 rounded-lg">
+                            <div class="text-xl font-bold text-green-600" id="totalClasesCount">0</div>
+                            <div class="text-xs text-green-600">Total de Clases</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subject List -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-3">Materias</h3>
+                    <div id="materiasList" class="space-y-2 max-h-60 overflow-y-auto">
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="space-y-2">
+                    <h4 class="text-sm font-semibold text-gray-700 mb-2">Acciones Rápidas</h4>
+                    <button onclick="exportarCalendario()" 
+                            class="w-full px-3 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 text-sm">
+                        <i class="fas fa-download mr-2"></i>
+                        Exportar Calendario
+                    </button>
+                    <button onclick="exportarFeriados()" 
+                            class="w-full px-3 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 text-sm">
+                        <i class="fas fa-calendar-times mr-2"></i>
+                        Exportar Feriados
+                    </button>
+                    <button onclick="importarFeriados()" 
+                            class="w-full px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+                        <i class="fas fa-upload mr-2"></i>
+                        Importar Feriados
+                    </button>
+                    <button onclick="limpiarFeriados()" 
+                            class="w-full px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm">
+                        <i class="fas fa-trash mr-2"></i>
+                        Limpiar Feriados
+                    </button>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 lg:ml-0">
+            <!-- Calendar Controls -->
+            <div class="bg-white shadow-sm border-b px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-gray-800">
+                        Calendario <span id="currentYear">2025</span>
+                    </h2>
+                    <div class="text-sm text-gray-500">
+                        <span class="inline-block w-3 h-3 bg-yellow-400 rounded mr-1"></span>Feriados
+                        <span class="inline-block w-3 h-3 bg-purple-500 rounded mx-2"></span>Clases
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="p-6">
+                <div id="calendarContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <!-- Calendar will be generated here -->
+                </div>
+            </div>
+        </main>
     </div>
 
-    <div class="container mt-4">
-      <!-- Usa mt-4 para agregar un poco de margen superior -->
-      <div id="calendarContainer" class="row">
-        <!-- Aquí se generará el contenido del calendario -->
-      </div>
-    </div>
+    <!-- Overlay for mobile sidebar -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden hidden"></div>
 
-    <div class="management container mt-4">
-      <h3 class="mb-3">Agregar Materia</h3>
-      <div class="form-group">
-        <input
-          type="text"
-          id="nombreMateria"
-          class="form-control"
-          placeholder="Nombre de la Materia"
-          required
-        />
-      </div>
-      <div class="form-group">
-        <select
-          id="facultadMateria"
-          class="form-control"
-          onchange="actualizarMaestrias()"
-        >
-          <option value="CienciasTecnologia">
-            Facultad de Ciencias y Tecnología
-          </option>
-          <option value="IngenieriaCivil">Facultad de Ingeniería Civil</option>
-          <option value="IngenieriaElectrica">
-            Facultad de Ingeniería Eléctrica
-          </option>
-          <option value="IngenieriaIndustrial">
-            Facultad de Ingeniería Industrial
-          </option>
-          <option value="IngenieriaMecanica">
-            Facultad de Ingeniería Mecánica
-          </option>
-          <option value="IngenieriaSistemas">
-            Facultad de Ingeniería de Sistemas Computacionales
-          </option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="maestriaMateria">Maestría:</label>
-        <select id="maestriaMateria" class="form-control">
-          <!-- Las opciones de maestría se llenarán dinámicamente basadas en la facultad seleccionada -->
-        </select>
-      </div>
-      <div class="form-group">
-        <input type="date" id="fechaInicioMateria" class="form-control" />
-      </div>
-      <div class="form-group">
-        <input
-          type="number"
-          id="totalClases"
-          class="form-control"
-          placeholder="Número de Clases"
-          min="1"
-          required
-        />
-      </div>
-      <div class="weekdays-selector">
-        <input type="checkbox" id="diaLunes" value="1" />
-        <label for="diaLunes" class="weekday-btn">Lunes</label>
+    <script>
+        // Global variables
+        let holidays = {
+            "1-09": "Día de los Mártires",
+            "3-01": "Carnavales", "3-02": "Carnavales", "3-03": "Carnavales", "3-04": "Carnavales",
+            "3-05": "Miércoles de Ceniza", "3-19": "Día libre distrital",
+            "3-28": "Jueves Santo", "3-29": "Viernes Santo",
+            "5-01": "Día del Trabajador", "8-16": "Aniversario de la UTP",
+            "11-02": "Día de los difuntos", "11-03": "Fiestas Patrias", "11-04": "Fiestas Patrias",
+            "11-05": "Fiestas Patrias", "11-11": "Fiestas Patrias", "11-28": "Fiestas Patrias",
+            "12-09": "Día de la Madre"
+        };
 
-        <input type="checkbox" id="diaMartes" value="2" />
-        <label for="diaMartes" class="weekday-btn">Martes</label>
+        let materias = [];
 
-        <input type="checkbox" id="diaMiercoles" value="3" />
-        <label for="diaMiercoles" class="weekday-btn">Miércoles</label>
+        const maestriasPorFacultad = {
+            CienciasTecnologia: [
+                "Postgrado en Docencia Superior",
+                "Maestría en Física"
+            ],
+            IngenieriaCivil: ["Maestría en Ingeniería Civil", "Maestría en Geotecnia"],
+            IngenieriaElectrica: ["Maestría en Ingeniería Eléctrica", "Maestría en Automatización"],
+            IngenieriaIndustrial: ["Maestría en Ingeniería Industrial", "Maestría en Logística"],
+            IngenieriaMecanica: ["Maestría en Ingeniería Mecánica", "Maestría en Manufactura"],
+            IngenieriaSistemas: [
+                "Auditoría de Sistemas",
+                "Maestría en Ciberseguridad"
+            ]
+        };
 
-        <input type="checkbox" id="diaJueves" value="4" />
-        <label for="diaJueves" class="weekday-btn">Jueves</label>
+        const coloresFacultades = {
+            CienciasTecnologia: { base: "#FFA500", variaciones: ["#FF8C00", "#FFE4B5"] },
+            IngenieriaCivil: { base: "#8B4513", variaciones: ["#A0522D", "#DEB887"] },
+            IngenieriaElectrica: { base: "#1E90FF", variaciones: ["#4169E1", "#87CEEB"] },
+            IngenieriaIndustrial: { base: "#32CD32", variaciones: ["#228B22", "#98FB98"] },
+            IngenieriaMecanica: { base: "#DC143C", variaciones: ["#B22222", "#FFB6C1"] },
+            IngenieriaSistemas: { base: "#9370DB", variaciones: ["#8A2BE2", "#DDA0DD"] }
+        };
 
-        <input type="checkbox" id="diaViernes" value="5" />
-        <label for="diaViernes" class="weekday-btn">Viernes</label>
+        // Initialize
+        window.addEventListener('load', function() {
+            console.log('Page loaded, initializing calendar...');
+            updateCurrentDate();
+            actualizarMaestrias();
+            updateHolidaysList();
+            generateCalendar();
+            setupEventListeners();
+            updateStatistics();
+            updateSubjectsList();
+        });
 
-        <input type="checkbox" id="diaSabado" value="6" />
-        <label for="diaSabado" class="weekday-btn">Sábado</label>
+        function updateCurrentDate() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('es-ES', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            document.getElementById('currentDate').textContent = dateStr;
+        }
 
-        <input type="checkbox" id="diaDomingo" value="0" />
-        <label for="diaDomingo" class="weekday-btn">Domingo</label>
-      </div>
+        function setupEventListeners() {
+            document.getElementById('sidebarToggle')?.addEventListener('click', function() {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebarOverlay');
+                
+                sidebar.classList.toggle('sidebar-hidden');
+                overlay.classList.toggle('hidden');
+            });
 
-      <button onclick="agregarMateria()" class="btn btn-primary mt-3">
-        Agregar Materia
-      </button>
-    </div>
+            document.getElementById('sidebarOverlay')?.addEventListener('click', function() {
+                document.getElementById('sidebar').classList.add('sidebar-hidden');
+                this.classList.add('hidden');
+            });
+        }
 
-    <div class="container mt-4">
-      <div class="card shadow">
-        <div class="card-header">
-          <h4 class="mb-0">Materias Agregadas</h4>
-        </div>
-        <div class="card-body">
-          <div id="materiasListadas" class="table-responsive">
-            <table class="table table-hover">
-              <thead class="thead-light">
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Nombre</th>
-                  <th scope="col">Maestría</th>
-                  <th scope="col">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- Las materias agregadas se listarán aquí -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
+        function generateCalendar() {
+            console.log('Generating calendar...');
+            const year = parseInt(document.getElementById('yearInput').value, 10);
+            document.getElementById('currentYear').textContent = year;
+            
+            const calendarContainer = document.getElementById('calendarContainer');
+            if (!calendarContainer) {
+                console.error('Calendar container not found!');
+                return;
+            }
+            
+            calendarContainer.innerHTML = '';
 
-    <!--
-    <div class="container mt-4">
-      <h4 class="mb-3">Materias Agregadas</h4>
-      <div id="materiasListadas">
-        <-- Las materias agregadas se listarán aquí --
-      </div>
-    </div>-->
+            const months = [
+                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            ];
 
-    <div id="holidaysList" class="container mt-4">
-      <h4 class="mb-3">Días Festivos</h4>
-      <!-- Los feriados se listarán aquí, asegúrate de ajustar también la generación de esta lista con clases de Bootstrap para los elementos generados dinámicamente -->
-    </div>
+            months.forEach((monthName, index) => {
+                console.log(`Creating month: ${monthName}`);
+                const monthDiv = createMonthCalendar(year, index, monthName);
+                calendarContainer.appendChild(monthDiv);
+            });
 
-    <!-- Modal -->
-    <div
-      class="modal fade"
-      id="alertModal"
-      tabindex="-1"
-      aria-labelledby="modalLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="modalLabel">Alerta</h5>
-            <button
-              type="button"
-              class="close"
-              data-dismiss="modal"
-              aria-label="Close"
-            >
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <!-- El mensaje de alerta se irá aquí -->
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-primary" data-dismiss="modal">
-              Entendido
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <script src="script.js"></script>
-  </body>
+            console.log('Calendar generated successfully');
+            actualizarCalendarioConClases();
+        }
+
+        function createMonthCalendar(year, monthIndex, monthName) {
+            const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+            const firstDay = new Date(year, monthIndex, 1).getDay();
+
+            // Main month container
+            const monthDiv = document.createElement('div');
+            monthDiv.className = 'bg-white rounded-lg shadow-md overflow-hidden';
+            
+            // Month header
+            const header = document.createElement('div');
+            header.className = 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-3 text-center';
+            header.innerHTML = `<h3 class="font-bold text-lg">${monthName} ${year}</h3>`;
+            
+            // Table container
+            const tableContainer = document.createElement('div');
+            tableContainer.className = 'p-3';
+            
+            // Create table
+            const table = document.createElement('table');
+            table.className = 'calendar-table w-full border-collapse';
+            
+            // Table header
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+            
+            dayNames.forEach(day => {
+                const th = document.createElement('th');
+                th.textContent = day;
+                th.className = 'bg-gray-100 p-2 text-center text-xs font-semibold text-gray-600 border';
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // Table body
+            const tbody = document.createElement('tbody');
+            
+            let date = 1;
+            for (let week = 0; week < 6; week++) {
+                const row = document.createElement('tr');
+                
+                for (let day = 0; day < 7; day++) {
+                    const cell = document.createElement('td');
+                    cell.className = 'border border-gray-300 p-0';
+                    
+                    if (week === 0 && day < firstDay) {
+                        // Empty cell before month starts
+                        const emptyDiv = document.createElement('div');
+                        emptyDiv.className = 'calendar-cell bg-gray-50';
+                        cell.appendChild(emptyDiv);
+                    } else if (date > daysInMonth) {
+                        // Empty cell after month ends
+                        const emptyDiv = document.createElement('div');
+                        emptyDiv.className = 'calendar-cell bg-gray-50';
+                        cell.appendChild(emptyDiv);
+                    } else {
+                        // Day cell
+                        const dayKey = `${monthIndex + 1}-${date.toString().padStart(2, '0')}`;
+                        const isHoliday = holidays[dayKey];
+                        const cellId = `cell-${year}-${monthIndex + 1}-${date}`;
+                        
+                        const dayDiv = document.createElement('div');
+                        dayDiv.id = cellId;
+                        dayDiv.className = `calendar-cell ${isHoliday ? 'holiday' : ''}`;
+                        dayDiv.textContent = date;
+                        
+                        if (isHoliday) {
+                            dayDiv.title = isHoliday;
+                        }
+                        
+                        cell.appendChild(dayDiv);
+                        date++;
+                    }
+                    
+                    row.appendChild(cell);
+                }
+                
+                tbody.appendChild(row);
+                if (date > daysInMonth) break;
+            }
+            
+            table.appendChild(tbody);
+            tableContainer.appendChild(table);
+            
+            // Assemble month
+            monthDiv.appendChild(header);
+            monthDiv.appendChild(tableContainer);
+            
+            return monthDiv;
+        }
+
+        function actualizarMaestrias() {
+            const facultadSeleccionada = document.getElementById('facultadMateria').value;
+            const selectMaestria = document.getElementById('maestriaMateria');
+            selectMaestria.innerHTML = '';
+
+            const maestrias = maestriasPorFacultad[facultadSeleccionada] || [];
+            maestrias.forEach((maestria) => {
+                const option = document.createElement('option');
+                option.value = maestria;
+                option.textContent = maestria;
+                selectMaestria.appendChild(option);
+            });
+        }
+
+        function obtenerColorMaestria(facultad, maestriaIndex) {
+            const colores = coloresFacultades[facultad];
+            if (!colores) return '#CCCCCC';
+            
+            if (colores.variaciones && colores.variaciones.length > maestriaIndex) {
+                return colores.variaciones[maestriaIndex];
+            }
+            return colores.base;
+        }
+
+        function existeChoqueHorario(fecha, facultad, maestria) {
+            return materias.some(materia => 
+                materia.facultad === facultad &&
+                materia.maestriaIndex === maestria &&
+                materia.clases.some(clase => clase.getTime() === fecha.getTime())
+            );
+        }
+
+        function agregarMateria() {
+            const nombreMateria = document.getElementById('nombreMateria').value.trim();
+            const facultad = document.getElementById('facultadMateria').value;
+            const maestriaSelect = document.getElementById('maestriaMateria');
+            const maestria = maestriaSelect.value;
+            const maestriaIndex = maestriaSelect.selectedIndex;
+            const fechaInicioInput = document.getElementById('fechaInicioMateria').value;
+            const totalClases = parseInt(document.getElementById('totalClases').value, 10);
+
+            if (!nombreMateria) {
+                Swal.fire('Error', 'El nombre de la materia es requerido', 'error');
+                return;
+            }
+            if (!fechaInicioInput) {
+                Swal.fire('Error', 'La fecha de inicio es requerida', 'error');
+                return;
+            }
+            if (!totalClases || totalClases < 1) {
+                Swal.fire('Error', 'El número de clases debe ser mayor a cero', 'error');
+                return;
+            }
+
+            const fechaInicio = new Date(fechaInicioInput);
+            const diasSeleccionados = [];
+            document.querySelectorAll('input[type=checkbox]:checked').forEach(checkbox => {
+                diasSeleccionados.push(parseInt(checkbox.value));
+            });
+
+            if (diasSeleccionados.length === 0) {
+                Swal.fire('Error', 'Debe seleccionar al menos un día de la semana', 'error');
+                return;
+            }
+
+            const colorMateria = obtenerColorMaestria(facultad, maestriaIndex);
+            let fechaActual = new Date(fechaInicio);
+            let contadorClases = 0;
+            let fechasClases = [];
+
+            while (contadorClases < totalClases) {
+                if (diasSeleccionados.includes(fechaActual.getDay())) {
+                    const keyFecha = `${fechaActual.getMonth() + 1}-${fechaActual.getDate().toString().padStart(2, '0')}`;
+                    
+                    if (!holidays[keyFecha] && !existeChoqueHorario(fechaActual, facultad, maestriaIndex)) {
+                        contadorClases++;
+                        fechasClases.push(new Date(fechaActual));
+                    } else if (existeChoqueHorario(fechaActual, facultad, maestriaIndex)) {
+                        Swal.fire({
+                            title: 'Choque de horario detectado',
+                            text: `Con '${nombreMateria}' el ${fechaActual.toLocaleDateString()}`,
+                            icon: 'warning'
+                        });
+                        return;
+                    }
+                }
+                fechaActual.setDate(fechaActual.getDate() + 1);
+            }
+
+            materias.push({
+                nombre: nombreMateria,
+                facultad: facultad,
+                maestria: maestria,
+                maestriaIndex: maestriaIndex,
+                clases: fechasClases,
+                color: colorMateria,
+                diasSemana: diasSeleccionados
+            });
+
+            Swal.fire({
+                title: '¡Materia Agregada!',
+                text: `La materia "${nombreMateria}" ha sido agregada exitosamente.`,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+            // Clear form
+            document.getElementById('nombreMateria').value = '';
+            document.getElementById('fechaInicioMateria').value = '';
+            document.getElementById('totalClases').value = '';
+            document.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
+
+            actualizarCalendarioConClases();
+            updateStatistics();
+            updateSubjectsList();
+        }
+
+        function actualizarCalendarioConClases() {
+            // Reset all cells
+            document.querySelectorAll('[id^="cell-"]').forEach(cell => {
+                cell.style.backgroundColor = '';
+                cell.style.background = '';
+                cell.style.color = '';
+                cell.classList.remove('inicio-materia');
+                
+                // Restore original holiday styling if needed
+                const cellId = cell.id;
+                const parts = cellId.split('-');
+                if (parts.length >= 4) {
+                    const month = parts[2];
+                    const day = parts[3];
+                    const key = `${month}-${day.padStart(2, '0')}`;
+                    if (holidays[key]) {
+                        cell.title = holidays[key];
+                        cell.classList.add('holiday');
+                    } else {
+                        cell.title = '';
+                        cell.classList.remove('holiday');
+                    }
+                }
+            });
+
+            const infoPorDia = {};
+
+            materias.forEach((materia, materiaIndex) => {
+                materia.clases.forEach((fecha, claseIndex) => {
+                    const cellId = `cell-${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`;
+                    
+                    if (!infoPorDia[cellId]) {
+                        infoPorDia[cellId] = {
+                            colores: new Set(),
+                            detalles: [],
+                            inicioMaterias: []
+                        };
+                    }
+                    
+                    infoPorDia[cellId].colores.add(materia.color);
+                    infoPorDia[cellId].detalles.push(`${materia.nombre} (${materia.maestria})`);
+                    
+                    if (claseIndex === 0) {
+                        infoPorDia[cellId].inicioMaterias.push(materia.nombre);
+                    }
+                });
+            });
+
+            Object.entries(infoPorDia).forEach(([cellId, { colores, detalles, inicioMaterias }]) => {
+                const cell = document.getElementById(cellId);
+                if (cell) {
+                    // Create tooltip content
+                    let tooltipContent = detalles.join('\n');
+                    if (inicioMaterias.length > 0) {
+                        tooltipContent += '\n\nInicia: ' + inicioMaterias.join(', ');
+                    }
+                    cell.title = tooltipContent;
+
+                    // Apply colors
+                    if (colores.size > 1) {
+                        const colorArray = Array.from(colores);
+                        cell.style.background = `linear-gradient(45deg, ${colorArray.join(', ')})`;
+                    } else {
+                        cell.style.backgroundColor = colores.values().next().value;
+                    }
+
+                    // Mark as class start if applicable
+                    if (inicioMaterias.length > 0) {
+                        cell.classList.add('inicio-materia');
+                    }
+
+                    // Add text color for better visibility
+                    cell.style.color = 'white';
+                    cell.style.fontWeight = 'bold';
+                    cell.style.textShadow = '1px 1px 1px rgba(0,0,0,0.7)';
+                }
+            });
+        }
+
+        function updateStatistics() {
+            document.getElementById('totalMaterias').textContent = materias.length;
+            document.getElementById('totalClasesCount').textContent = 
+                materias.reduce((total, materia) => total + materia.clases.length, 0);
+        }
+
+        function updateSubjectsList() {
+            const listContainer = document.getElementById('materiasList');
+            listContainer.innerHTML = '';
+
+            if (materias.length === 0) {
+                listContainer.innerHTML = '<p class="text-gray-500 text-sm">No hay materias agregadas</p>';
+                return;
+            }
+
+            materias.forEach((materia, index) => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-2 bg-gray-50 rounded';
+                item.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 rounded mr-2" style="background-color: ${materia.color}"></div>
+                        <div>
+                            <div class="text-sm font-medium">${materia.nombre}</div>
+                            <div class="text-xs text-gray-500">${materia.clases.length} clases</div>
+                        </div>
+                    </div>
+                    <button onclick="eliminarMateria(${index})" class="text-red-500 hover:text-red-700">
+                        <i class="fas fa-trash text-sm"></i>
+                    </button>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+
+        function eliminarMateria(index) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: `Se eliminará la materia "${materias[index].nombre}" y todas sus clases.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    materias.splice(index, 1);
+                    actualizarCalendarioConClases();
+                    updateStatistics();
+                    updateSubjectsList();
+                    Swal.fire('¡Eliminado!', 'La materia ha sido eliminada.', 'success');
+                }
+            });
+        }
+
+        // Holiday Management Functions
+        function agregarFeriado() {
+            const fechaInput = document.getElementById('fechaFeriado').value;
+            const nombreFeriado = document.getElementById('nombreFeriado').value.trim();
+
+            if (!fechaInput) {
+                Swal.fire('Error', 'Debe seleccionar una fecha para el feriado', 'error');
+                return;
+            }
+            if (!nombreFeriado) {
+                Swal.fire('Error', 'Debe ingresar un nombre para el feriado', 'error');
+                return;
+            }
+
+            const fecha = new Date(fechaInput);
+            const month = fecha.getMonth() + 1;
+            const day = fecha.getDate();
+            const key = `${month}-${day.toString().padStart(2, '0')}`;
+
+            if (holidays[key]) {
+                Swal.fire({
+                    title: 'Feriado existente',
+                    text: `Ya existe un feriado el ${day}/${month}: "${holidays[key]}". ¿Desea reemplazarlo?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, reemplazar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        holidays[key] = nombreFeriado;
+                        finalizarAgregarFeriado(nombreFeriado);
+                    }
+                });
+            } else {
+                holidays[key] = nombreFeriado;
+                finalizarAgregarFeriado(nombreFeriado);
+            }
+        }
+
+        function finalizarAgregarFeriado(nombreFeriado) {
+            document.getElementById('fechaFeriado').value = '';
+            document.getElementById('nombreFeriado').value = '';
+            updateHolidaysList();
+            generateCalendar();
+
+            Swal.fire({
+                title: '¡Feriado Agregado!',
+                text: `El feriado "${nombreFeriado}" ha sido agregado exitosamente.`,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+
+        function eliminarFeriado(key) {
+            const nombreFeriado = holidays[key];
+            
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: `Se eliminará el feriado "${nombreFeriado}".`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    delete holidays[key];
+                    updateHolidaysList();
+                    generateCalendar();
+                    Swal.fire('¡Eliminado!', 'El feriado ha sido eliminado.', 'success');
+                }
+            });
+        }
+
+        function editarFeriado(key) {
+            const nombreActual = holidays[key];
+            const [month, day] = key.split('-');
+            const fechaActual = `${new Date().getFullYear()}-${month.padStart(2, '0')}-${day}`;
+            
+            Swal.fire({
+                title: 'Editar Feriado',
+                html: `
+                    <div class="text-left space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Fecha:</label>
+                            <input type="date" id="editFechaFeriado" value="${fechaActual}" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nombre:</label>
+                            <input type="text" id="editNombreFeriado" value="${nombreActual}" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500">
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Guardar',
+                cancelButtonText: 'Cancelar',
+                preConfirm: () => {
+                    const nuevaFecha = document.getElementById('editFechaFeriado').value;
+                    const nuevoNombre = document.getElementById('editNombreFeriado').value.trim();
+                    
+                    if (!nuevaFecha || !nuevoNombre) {
+                        Swal.showValidationMessage('Todos los campos son requeridos');
+                        return false;
+                    }
+                    
+                    return { fecha: nuevaFecha, nombre: nuevoNombre };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const { fecha, nombre } = result.value;
+                    const nuevaFecha = new Date(fecha);
+                    const nuevoKey = `${nuevaFecha.getMonth() + 1}-${nuevaFecha.getDate().toString().padStart(2, '0')}`;
+                    
+                    delete holidays[key];
+                    holidays[nuevoKey] = nombre;
+                    
+                    updateHolidaysList();
+                    generateCalendar();
+                    Swal.fire('¡Actualizado!', 'El feriado ha sido actualizado.', 'success');
+                }
+            });
+        }
+
+        function updateHolidaysList() {
+            const holidaysList = document.getElementById('holidaysList');
+            holidaysList.innerHTML = '';
+
+            if (Object.keys(holidays).length === 0) {
+                holidaysList.innerHTML = '<p class="text-gray-500 text-sm p-2">No hay feriados configurados</p>';
+                return;
+            }
+
+            const sortedHolidays = Object.entries(holidays).sort((a, b) => {
+                const [monthA, dayA] = a[0].split('-').map(Number);
+                const [monthB, dayB] = b[0].split('-').map(Number);
+                return monthA - monthB || dayA - dayB;
+            });
+
+            sortedHolidays.forEach(([key, nombre]) => {
+                const [month, day] = key.split('-');
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-2 bg-yellow-50 rounded text-sm';
+                item.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-yellow-400 rounded mr-2"></div>
+                        <div>
+                            <div class="font-medium">${nombre}</div>
+                            <div class="text-xs text-gray-500">${day}/${month}</div>
+                        </div>
+                    </div>
+                    <div class="flex space-x-1">
+                        <button onclick="editarFeriado('${key}')" 
+                                class="text-blue-500 hover:text-blue-700 p-1" title="Editar">
+                            <i class="fas fa-edit text-xs"></i>
+                        </button>
+                        <button onclick="eliminarFeriado('${key}')" 
+                                class="text-red-500 hover:text-red-700 p-1" title="Eliminar">
+                            <i class="fas fa-trash text-xs"></i>
+                        </button>
+                    </div>
+                `;
+                holidaysList.appendChild(item);
+            });
+        }
+
+        function toggleHolidaysList() {
+            const holidaysList = document.getElementById('holidaysList');
+            const toggleBtn = document.getElementById('toggleHolidaysBtn');
+            const icon = toggleBtn.querySelector('i');
+            
+            if (holidaysList.classList.contains('hidden')) {
+                holidaysList.classList.remove('hidden');
+                icon.className = 'fas fa-chevron-up';
+            } else {
+                holidaysList.classList.add('hidden');
+                icon.className = 'fas fa-chevron-down';
+            }
+        }
+
+        function importarFeriados() {
+            Swal.fire({
+                title: 'Importar Feriados',
+                text: 'Seleccione el tipo de feriados a importar:',
+                icon: 'question',
+                showCancelButton: true,
+                showDenyButton: true,
+                confirmButtonText: '<i class="fas fa-flag mr-2"></i>Panamá 2025',
+                denyButtonText: '<i class="fas fa-calendar mr-2"></i>Básicos',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    importarFeriadosPanama2025();
+                } else if (result.isDenied) {
+                    importarFeriadosBasicos();
+                }
+            });
+        }
+
+        function importarFeriadosPanama2025() {
+            const feriadosPanama2025 = {
+                "1-01": "Año Nuevo",
+                "1-09": "Día de los Mártires",
+                "2-24": "Lunes de Carnaval",
+                "2-25": "Martes de Carnaval",
+                "4-18": "Viernes Santo",
+                "5-01": "Día del Trabajador",
+                "11-03": "Independencia de Panamá de Colombia",
+                "11-04": "Día de la Bandera",
+                "11-05": "Independencia de Panamá de Colombia (observado)",
+                "11-10": "Primer Grito de Independencia",
+                "11-28": "Independencia de Panamá de España",
+                "12-08": "Día de las Madres",
+                "12-25": "Navidad"
+            };
+
+            Object.assign(holidays, feriadosPanama2025);
+            updateHolidaysList();
+            generateCalendar();
+            
+            Swal.fire({
+                title: '¡Feriados Importados!',
+                text: 'Se han importado los feriados oficiales de Panamá 2025.',
+                icon: 'success'
+            });
+        }
+
+        function importarFeriadosBasicos() {
+            const feriadosBasicos = {
+                "1-01": "Año Nuevo",
+                "5-01": "Día del Trabajador",
+                "12-25": "Navidad"
+            };
+
+            Object.assign(holidays, feriadosBasicos);
+            updateHolidaysList();
+            generateCalendar();
+            
+            Swal.fire({
+                title: '¡Feriados Importados!',
+                text: 'Se han importado los feriados básicos.',
+                icon: 'success'
+            });
+        }
+
+        function exportarCalendario() {
+            if (materias.length === 0) {
+                Swal.fire('Sin datos', 'No hay materias para exportar', 'info');
+                return;
+            }
+
+            let csv = 'Materia,Facultad,Maestria,Fecha,Numero_Clase\n';
+            
+            materias.forEach(materia => {
+                materia.clases.forEach((fecha, index) => {
+                    csv += `"${materia.nombre}","${materia.facultad}","${materia.maestria}","${fecha.toLocaleDateString('es-ES')}",${index + 1}\n`;
+                });
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `calendario_academico_${new Date().getFullYear()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            Swal.fire('¡Exportado!', 'El archivo CSV ha sido descargado.', 'success');
+        }
+
+        function exportarFeriados() {
+            if (Object.keys(holidays).length === 0) {
+                Swal.fire('Sin datos', 'No hay feriados para exportar', 'info');
+                return;
+            }
+
+            let csv = 'Fecha,Nombre\n';
+            Object.entries(holidays).forEach(([key, nombre]) => {
+                const [month, day] = key.split('-');
+                csv += `"${day}/${month}","${nombre}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `feriados_${new Date().getFullYear()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            Swal.fire('¡Exportado!', 'Los feriados han sido exportados a CSV.', 'success');
+        }
+
+        function limpiarFeriados() {
+            if (Object.keys(holidays).length === 0) {
+                Swal.fire('Sin datos', 'No hay feriados para limpiar', 'info');
+                return;
+            }
+
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: 'Se eliminarán todos los feriados configurados. Esta acción no se puede deshacer.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sí, limpiar todos',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    holidays = {};
+                    updateHolidaysList();
+                    generateCalendar();
+                    Swal.fire('¡Limpiado!', 'Todos los feriados han sido eliminados.', 'success');
+                }
+            });
+        }
+
+        // Console info
+        console.log('✅ Sistema de Calendario Académico UTP - Versión 3.0');
+        console.log('📅 Calendario generado correctamente');
+        console.log('🎯 Funcionalidades activas: Materias, Feriados, Exportación');
+    </script>
+</body>
 </html>
